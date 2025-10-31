@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using Ink.Runtime;
 using TMPro;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
 
 public class Death : MonoBehaviour
 {
@@ -61,7 +62,8 @@ public class Death : MonoBehaviour
         DialogueManager dialogueManager = DialogueManager.GetInstance();
         if (dialogueManager != null && dialogueManager.dialogueIsPlaying)
         {
-            dialogueManager.StartCoroutine(dialogueManager.ExitDialogueMode());
+            //dialogueManager.StartCoroutine(dialogueManager.ExitDialogueMode());
+            dialogueManager.ExitDialogueMode().Forget();
         }
 
         deathPopup.SetActive(true);

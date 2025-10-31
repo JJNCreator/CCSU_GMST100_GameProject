@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Windows;
 using Ink.Runtime;
 using UnityEngine.InputSystem.XR;
+using Cysharp.Threading.Tasks;
 
 public class PlayerController : MonoBehaviour, IDataPersistence
 {
@@ -119,7 +120,7 @@ public class PlayerController : MonoBehaviour, IDataPersistence
     }
 
 
-    private IEnumerator ClimbLedge()
+    /*private IEnumerator ClimbLedge()
     {
         // Get the player's collider and the ground collider
         Collider2D playerCollider = GetComponent<Collider2D>();
@@ -142,6 +143,48 @@ public class PlayerController : MonoBehaviour, IDataPersistence
             transform.position = Vector2.Lerp(startPosition, climbOverPosition, elapsedTime / climbDuration);
             elapsedTime += Time.deltaTime;
             yield return null;
+        }
+
+        // Ensure the player is at the final position
+        transform.position = climbOverPosition;
+
+        if (playerCollider != null && groundCollider != null)
+        {
+            // Re-enable collisions between the player and the ground
+            Physics2D.IgnoreCollision(playerCollider, groundCollider, false);
+        }
+
+        // Reset variables after climbing
+        canClimb = false;
+        ledgeDetected = false;
+        canGrabLedge = true;
+
+        // Reset the animator parameter
+        animator.SetBool("canClimb", false);
+    }*/
+    private async UniTask ClimbLedge()
+    {
+        // Get the player's collider and the ground collider
+        Collider2D playerCollider = GetComponent<Collider2D>();
+        Collider2D groundCollider = GameObject.FindWithTag("ClimbLedge").GetComponent<Collider2D>(); // Adjust tag as needed
+
+        if (playerCollider != null && groundCollider != null)
+        {
+            // Ignore collisions between the player and the ground
+            Physics2D.IgnoreCollision(playerCollider, groundCollider, true);
+        }
+
+        float climbDuration = .51f; // Adjust this to match the duration of the climb animation
+        float elapsedTime = 0f;
+
+        Vector2 startPosition = transform.position;
+
+        while (elapsedTime < climbDuration)
+        {
+            // Smoothly move the player to the climbOverPosition
+            transform.position = Vector2.Lerp(startPosition, climbOverPosition, elapsedTime / climbDuration);
+            elapsedTime += Time.deltaTime;
+            await UniTask.Yield();
         }
 
         // Ensure the player is at the final position
@@ -214,7 +257,8 @@ public class PlayerController : MonoBehaviour, IDataPersistence
         if (canClimb)
         {
             animator.SetBool("canClimb", true);
-            StartCoroutine(ClimbLedge());
+            //StartCoroutine(ClimbLedge());
+            ClimbLedge().Forget();
         }
         else
         {

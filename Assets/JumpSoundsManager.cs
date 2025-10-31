@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using System.Collections;
 using UnityEngine;
 
@@ -58,7 +59,8 @@ public class JumpSoundsManager : MonoBehaviour
             }
 
             // Start the jumpsound coroutine
-            jumpSoundCoroutine = StartCoroutine(PlaySound(jumpsound, jumpAudioSource));
+            //jumpSoundCoroutine = StartCoroutine(PlaySound(jumpsound, jumpAudioSource));
+            PlaySound(jumpsound, jumpAudioSource).Forget();
         }
         if (playerController.ledgeDetected) //turns off the light to indicate the ledge is active to climb
             {
@@ -85,19 +87,21 @@ public class JumpSoundsManager : MonoBehaviour
             {
                 if (ledgeFailCooldownTimer <= 0) // Check if cooldown has expired
                 {
-                    StartCoroutine(PlaySound(ledgefailsound, ledgeFailAudioSource));
+                    //StartCoroutine(PlaySound(ledgefailsound, ledgeFailAudioSource));
+                    PlaySound(ledgefailsound, ledgeFailAudioSource).Forget();
                     ledgeFailCooldownTimer = LedgeFailCooldown; // Reset the cooldown timer
                 }
             }
             else if (playerController.ledgeDetected)
             {
                 Debug.Log("Playing Ledge Sound"); // Debug log to confirm ledge sound is triggered
-                StartCoroutine(PlaySound(ledgesound, ledgeAudioSource));
+                //StartCoroutine(PlaySound(ledgesound, ledgeAudioSource));
+                PlaySound(ledgesound, ledgeAudioSource).Forget();
             }
         }
     }
 
-    private IEnumerator PlaySound(GameObject soundObject, AudioSource audioSource)
+    /*private IEnumerator PlaySound(GameObject soundObject, AudioSource audioSource)
     {
         soundObject.SetActive(true);
         audioSource.Play();
@@ -107,6 +111,21 @@ public class JumpSoundsManager : MonoBehaviour
 
         // Wait for the length of the audio clip
         yield return new WaitForSeconds(audioSource.clip.length);
+
+        soundObject.SetActive(false);
+    }*/
+
+    private async UniTask PlaySound(GameObject soundObject, AudioSource audioSource)
+    {
+        soundObject.SetActive(true);
+        audioSource.Play();
+
+        // Debug log to confirm sound is playing
+        Debug.Log("Playing Sound: " + soundObject.name);
+
+        // Wait for the length of the audio clip
+        //yield return new WaitForSeconds(audioSource.clip.length);
+        await UniTask.WaitUntil(() => audioSource.isPlaying == false);
 
         soundObject.SetActive(false);
     }
