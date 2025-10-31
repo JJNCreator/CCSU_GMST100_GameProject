@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 
 
 namespace TMPro.Examples
@@ -26,10 +27,11 @@ namespace TMPro.Examples
 
         void Start()
         {
-            StartCoroutine(AnimateProperties());
+            //StartCoroutine(AnimateProperties());
+            AnimateProperties().Forget();
         }
 
-        IEnumerator AnimateProperties()
+        /*IEnumerator AnimateProperties()
         {
             //float lightAngle;
             float glowPower;
@@ -45,6 +47,24 @@ namespace TMPro.Examples
 
                 m_frame += Time.deltaTime * Random.Range(0.2f, 0.3f);
                 yield return new WaitForEndOfFrame();
+            }
+        }*/
+        private async UniTask AnimateProperties()
+        {
+            //float lightAngle;
+            float glowPower;
+            m_frame = Random.Range(0f, 1f);
+
+            while (true)
+            {
+                //lightAngle = (m_Material.GetFloat(ShaderPropertyIDs.ID_LightAngle) + Time.deltaTime) % 6.2831853f;
+                //m_Material.SetFloat(ShaderPropertyIDs.ID_LightAngle, lightAngle);
+
+                glowPower = GlowCurve.Evaluate(m_frame);
+                m_Material.SetFloat(ShaderUtilities.ID_GlowPower, glowPower);
+
+                m_frame += Time.deltaTime * Random.Range(0.2f, 0.3f);
+                await UniTask.WaitForEndOfFrame();
             }
         }
     }

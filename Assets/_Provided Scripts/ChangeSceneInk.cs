@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using Ink.Runtime;
 using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
 
 public class ChangeSceneInk : MonoBehaviour
 {
@@ -33,11 +34,12 @@ public class ChangeSceneInk : MonoBehaviour
 
         if (scenechangetrigger == scenechangenum)
         {
-            StartCoroutine(ChangeSceneRoutine());
+            //StartCoroutine(ChangeSceneRoutine());
+            ChangeSceneRoutine().Forget();
         }
     }
 
-    private IEnumerator ChangeSceneRoutine()
+    /*private IEnumerator ChangeSceneRoutine()
     {
         sceneChanging = true;
 
@@ -45,6 +47,23 @@ public class ChangeSceneInk : MonoBehaviour
         if (screenFader != null)
         {
             yield return screenFader.FadeOut(5f); // Override with 5 seconds
+        }
+
+        // Save game data before changing scenes
+        GameData gameData = new GameData();
+        DialogueManager.GetInstance().SaveData(gameData);
+
+        SceneManager.LoadScene(sceneID);
+    }*/
+    private async UniTask ChangeSceneRoutine()
+    {
+        sceneChanging = true;
+
+        // Start fade-out immediately, with a duration of 2 seconds
+        if (screenFader != null)
+        {
+            //yield return screenFader.FadeOut(5f); // Override with 5 seconds
+            await screenFader.FadeOut(5f);
         }
 
         // Save game data before changing scenes

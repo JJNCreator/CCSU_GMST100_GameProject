@@ -5,6 +5,7 @@ using TMPro;
 using Ink.Runtime;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using Cysharp.Threading.Tasks;
 
 public class DialogueManager : MonoBehaviour, IDataPersistence
 {
@@ -129,9 +130,26 @@ public class DialogueManager : MonoBehaviour, IDataPersistence
         ContinueStory();
     }
 
-    public IEnumerator ExitDialogueMode()
+    /*public IEnumerator ExitDialogueMode()
     {
         yield return new WaitForSeconds(0.2f);
+
+        dialogueVariables.StopListening(currentStory);
+
+        dialogueIsPlaying = false;
+        dialoguePanel.SetActive(false);
+        dialogueText.text = "";
+
+        // Clear the EventSystem's selected object
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+    }*/
+
+    public async UniTask ExitDialogueMode()
+    {
+        await UniTask.WaitForSeconds(0.2f);
 
         dialogueVariables.StopListening(currentStory);
 
@@ -159,7 +177,8 @@ public class DialogueManager : MonoBehaviour, IDataPersistence
             //makes sure if next line is blank because of external fuctions or tags at the end, it wont display an empty box
             if (nextLine.Equals("") && !currentStory.canContinue)
             {
-                StartCoroutine(ExitDialogueMode());
+                //StartCoroutine(ExitDialogueMode());
+                ExitDialogueMode().Forget();
             }
             //if not , will handle tags as normal
             else
@@ -171,7 +190,8 @@ public class DialogueManager : MonoBehaviour, IDataPersistence
         }
         else
         {
-            StartCoroutine(ExitDialogueMode());
+            //StartCoroutine(ExitDialogueMode());
+            ExitDialogueMode().Forget();
         }
     }
 
@@ -291,10 +311,11 @@ public class DialogueManager : MonoBehaviour, IDataPersistence
             choices[i].gameObject.SetActive(false);
         }
 
-        StartCoroutine(SelectFirstChoice());
+        //StartCoroutine(SelectFirstChoice());
+        SelectFirstChoice().Forget();
     }
 
-    private IEnumerator SelectFirstChoice()
+    /*private IEnumerator SelectFirstChoice()
     {
         // Only set the selected object if dialogue is playing
         if (dialogueIsPlaying)
@@ -303,6 +324,18 @@ public class DialogueManager : MonoBehaviour, IDataPersistence
             // for at least one frame before we set the current selected object.
             EventSystem.current.SetSelectedGameObject(null);
             yield return new WaitForEndOfFrame();
+            EventSystem.current.SetSelectedGameObject(choices[0].gameObject);
+        }
+    }*/
+    private async UniTask SelectFirstChoice()
+    {
+        // Only set the selected object if dialogue is playing
+        if (dialogueIsPlaying)
+        {
+            // Event System requires we clear it first, then wait
+            // for at least one frame before we set the current selected object.
+            EventSystem.current.SetSelectedGameObject(null);
+            await UniTask.WaitForEndOfFrame();
             EventSystem.current.SetSelectedGameObject(choices[0].gameObject);
         }
     }
